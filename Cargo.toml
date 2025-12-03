@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-common = { version = "0.1.0", path = "../crates/common" }
+common = { git = "https://github.com/TristanCollis/Advent_of_Code_Common.git", version = "0.1.0" }
 regex = "1.12.2"
