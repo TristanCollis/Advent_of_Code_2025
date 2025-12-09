@@ -5,4 +5,7 @@ edition = "2021"
 
 [dependencies]
 common = { git = "https://github.com/TristanCollis/Advent_of_Code_Common.git", version = "0.1.0" }
+itertools = "0.14.0"
+ndarray = "0.17.1"
+num-traits = "0.2.19"
 regex = "1.12.2"
