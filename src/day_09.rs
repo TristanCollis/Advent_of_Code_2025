@@ -10,11 +10,10 @@ type Int = i64;
 type Point = (Int, Int);
 type Input = Vec<Point>;
 
-
 #[derive(Debug, Clone, Copy)]
 enum Wall {
     Edge(Point, OutDirection),
-    Corner(Point, TurnDirection)
+    Corner(Point, TurnDirection),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -22,13 +21,13 @@ enum OutDirection {
     North,
     East,
     South,
-    West
+    West,
 }
 
 #[derive(Debug, Clone, Copy)]
 enum TurnDirection {
     Clockwise,
-    Counterclockwise
+    Counterclockwise,
 }
 
 pub fn part_1(use_example: bool) -> Result<()> {
@@ -60,7 +59,32 @@ fn _part_1(input: Input) -> Result<()> {
 }
 
 fn _part_2(input: Input) -> Result<()> {
-    
+    let walls = input
+    .iter()
+    .circular_tuple_windows()
+    .map(
+        |(a, b)| {
+            wall_segments(*a, *b)
+        }
+    )
+    .fold(
+        HashSet::new(),
+        |acc, elem| {
+            &acc | &elem
+        }
+    );
+
+    let mut max_area = 0;
+
+    for (a, b) in input.iter().combinations(2).map(|pair| (pair[0], pair[1])) {
+        if area(a, b) <= max_area{
+            continue;
+        }
+
+        let (tr, bl) = ordered_corners(*a, *b);
+        
+
+    }
 
     Ok(())
 }
@@ -104,20 +128,59 @@ fn ordered_corners(a: Point, b: Point) -> (Point, Point) {
     ((a.0.min(b.0), a.1.min(b.1)), (a.0.max(b.0), a.1.max(b.1)))
 }
 
+fn exterior_border(walls: &HashSet<Point>) -> HashSet<Point> {
+    let top = walls.iter().map(|p| p.0).min().unwrap() - 1;
+    let bottom = walls.iter().map(|p| p.0).max().unwrap() + 1;
+    let left = walls.iter().map(|p| p.1).min().unwrap() - 1;
+    let right = walls.iter().map(|p| p.1).max().unwrap() + 1;
 
-fn enum_walls(points: &Vec<Point>) -> Vec<Wall> {
+    dbg!(top);
+    dbg!(bottom);
+    dbg!(left);
+    dbg!(right);
 
-    let mut walls
-    
-    for triplet in points.iter().circular_tuple_windows::<(_, _, _)>() {
+    let mut layer_0: HashSet<Point>;
+    let mut layer_1: HashSet<Point> = HashSet::new();
+    let mut layer_2: HashSet<Point> = HashSet::new();
+    let mut border: HashSet<Point> = HashSet::new();
 
-            #
-        #   #
+    layer_1.insert((top, left));
+
+    layer_2.insert((top + 1, left));
+    layer_2.insert((top, left + 1));
+
+    while layer_2.len() > 0 {
+        layer_0 = layer_1;
+        layer_1 = HashSet::from_iter(layer_2.drain());
+
+        for point in layer_1.iter() {
+            for offset in [(-1, 0), (1, 0), (0, -1), (0, 1)] {
+                let new_point = (point.0 + offset.0, point.1 + offset.1);
+
+                if !(top <= new_point.0
+                    && new_point.0 <= bottom
+                    && left <= new_point.1
+                    && new_point.1 <= right)
+                {
+                    continue;
+                }
+
+                if walls.contains(&new_point) {
+                    border.insert(*point);
+                    continue;
+                }
+
+                if layer_0.contains(&new_point) || layer_1.contains(&new_point) {
+                    continue;
+                }
+
+                layer_2.insert(new_point);
+            }
+        }
     }
 
-    todo!()
+    border
 }
-
 
 fn show_grid(points: &HashSet<Point>) {
     let mut screen = vec![
